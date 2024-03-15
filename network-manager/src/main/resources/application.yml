@@ -1,0 +1,39 @@
+mp:
+  openapi:
+    extensions:
+      smallrye:
+        info:
+          title: 'API Specification'
+          version: '1.0'
+          description: 'Exposed REST Services in order to talk with the world'
+          name: 'NebulOus Overlay Network Manager'
+
+quarkus:
+  datasource:
+    db-kind: postgresql
+    jdbc:
+        url: ${POSTGRES_CONNECTION_STRING}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  hibernate-orm:
+    database:
+      generation: update
+
+  smallrye-openapi:
+    path: '/api/openapi'
+    security-scheme: 'jwt'
+    security-scheme-name: 'Swagger Authentication'
+    security-scheme-description: 'User Authentication through Keycloak'
+
+  swagger-ui:
+    title: 'API Documentation'
+    theme: material
+    footer: &#169; 2024
+    always-include: true
+    path: '/api/swagger'
+
+"%prod":
+  quarkus:
+    package:
+      type: uber-jar

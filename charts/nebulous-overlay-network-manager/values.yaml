@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: "quay.io/nebulous/overlay-network-manager-java-spring-boot-demo"
+  repository: "quay.io/nebulous/overlay-network-manager"
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -39,6 +39,8 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  pgadminPort: 5050
+  onmApiPort: 8082
 
 ingress:
   enabled: false
@@ -80,3 +82,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+postgresql:
+  global:
+    postgresql:
+      auth:
+        postgresPassword: "nebulous"
+        username: "postgresql"
+        password: "postgresql"
+        database: "postgres"
+
+customEnv:
+  WIREGUARD_NETWORK_PORTION: "192.168.55."
+  WIREGUARD_DEFAULT_SERVER_IP: "192.168.55.1"
+  WIREGUARD_ALLOWED_IPS: "192.168.55.0/24"
+  _PROD_WG_BOOTSTRAP_AGENT_SCRIPTS_DIR: "/deployments/wg-bootstrap-agent-scripts"

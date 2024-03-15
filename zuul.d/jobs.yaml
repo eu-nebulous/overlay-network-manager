@@ -8,15 +8,15 @@
       - nebulous-overlay-network-manager-container-images
     description: Build the container images.
     files: &image_files
-      - ^java-spring-boot-demo/
+      - ^network-manager/
     vars: &image_vars
       promote_container_image_job: nebulous-overlay-network-manager-upload-container-images
       container_images:
-        - context: java-spring-boot-demo
+        - context: network-manager
           registry: quay.io
-          repository: quay.io/nebulous/overlay-network-manager-java-spring-boot-demo
+          repository: quay.io/nebulous/overlay-network-manager
           namespace: nebulous
-          repo_shortname: overlay-network-manager-java-spring-boot-demo
+          repo_shortname: overlay-network-manager
           repo_description: ""
 
 - job:
@@ -44,7 +44,7 @@
     description: Run Hadolint on Dockerfile(s).
     vars:
       dockerfiles:
-        - java-spring-boot-demo/Dockerfile
+        - network-manager/Dockerfile
 
 - job:
     name: nebulous-overlay-network-manager-helm-lint

@@ -27,6 +27,10 @@ spec:
       serviceAccountName: {{ include "nebulous-overlay-network-manager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: wait-for-postgresql
+          image: docker.io/bitnami/postgresql:14.3.0
+          command: ['sh', '-c', 'until pg_isready -h nebulous-overlay-network-manager-postgresql -p 5432; do echo waiting for database; sleep 2; done;']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -34,19 +38,33 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: 8080
+            - name: onm-api
+              containerPort: 8082
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
+            - name: pgadmin
+              containerPort: 5050
+              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.global.postgresql.auth.username }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.postgresql.global.postgresql.auth.password }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.global.postgresql.auth.database }}
+            - name: POSTGRES_IP_FQDN
+              value: "nebulous-overlay-network-manager-postgresql"
+            - name: POSTGRES_CONNECTION_STRING
+              value: "jdbc:postgresql://nebulous-overlay-network-manager-postgresql:5432/postgres"
+            - name: WIREGUARD_NETWORK_PORTION
+              value: "{{ .Values.customEnv.WIREGUARD_NETWORK_PORTION }}"
+            - name: WIREGUARD_DEFAULT_SERVER_IP
+              value: "{{ .Values.customEnv.WIREGUARD_DEFAULT_SERVER_IP }}"
+            - name: WIREGUARD_ALLOWED_IPS
+              value: "{{ .Values.customEnv.WIREGUARD_ALLOWED_IPS }}"
+            - name: _PROD_WG_BOOTSTRAP_AGENT_SCRIPTS_DIR
+              value: "{{ .Values.customEnv._PROD_WG_BOOTSTRAP_AGENT_SCRIPTS_DIR }}"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

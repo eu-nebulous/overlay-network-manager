@@ -7,9 +7,13 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - port: {{ .Values.service.pgadminPort }}
+      targetPort: pgadmin
       protocol: TCP
-      name: http
+      name: pgadmin
+    - port: {{ .Values.service.onmApiPort }}
+      targetPort: onm-api
+      protocol: TCP
+      name: onm-api
   selector:
     {{- include "nebulous-overlay-network-manager.selectorLabels" . | nindent 4 }}
