@@ -29,7 +29,7 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
         - name: wait-for-postgresql
-          image: docker.io/bitnami/postgresql:14.3.0
+          image: docker.io/bitnami/postgresql:16.2.0-debian-12-r8
           command: ['sh', '-c', 'until pg_isready -h nebulous-overlay-network-manager-postgresql -p 5432; do echo waiting for database; sleep 2; done;']
       containers:
         - name: {{ .Chart.Name }}
