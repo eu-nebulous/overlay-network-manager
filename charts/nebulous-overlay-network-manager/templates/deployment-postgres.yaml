@@ -1,0 +1,64 @@
+{{ if .Values.postgresql.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nebulous-overlay-network-manager.fullname" . }}-postgresql
+  labels:
+    {{- include "nebulous-overlay-network-manager.postgresql.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "nebulous-overlay-network-manager.postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nebulous-overlay-network-manager.postgresql.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: postgresql
+          image: "{{ .Values.postgresql.image }}"
+          ports:
+            - name: postgresql
+              containerPort: {{ .Values.postgresql.port }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgresql.user }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgresql.password }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgresql.dbName }}"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nebulous-overlay-network-manager.fullname" . }}-postgresql
+  labels:
+    {{- include "nebulous-overlay-network-manager.postgresql.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.postgresql.port }}
+      targetPort: postgresql
+      protocol: TCP
+      name: postgresql
+    - port: 5050
+      targetPort: pgadmin
+      protocol: TCP
+      name: pgadmin
+  selector:
+    {{- include "nebulous-overlay-network-manager.postgresql.selectorLabels" . | nindent 4 }}
+{{ end }}

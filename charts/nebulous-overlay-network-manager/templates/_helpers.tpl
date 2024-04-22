@@ -42,11 +42,25 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
+{{- define "nebulous-overlay-network-manager.postgresql.labels" -}}
+helm.sh/chart: {{ include "nebulous-overlay-network-manager.chart" . }}
+{{ include "nebulous-overlay-network-manager.postgresql.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
 {{/*
 Selector labels
 */}}
 {{- define "nebulous-overlay-network-manager.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "nebulous-overlay-network-manager.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "nebulous-overlay-network-manager.postgresql.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nebulous-overlay-network-manager.name" . }}-postgresql
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
