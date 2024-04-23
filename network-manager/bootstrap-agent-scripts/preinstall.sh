@@ -66,6 +66,11 @@ log_print INFO "Preinstall ($PID): Logs are saved at: $LOGFILE"
 
 log_print INFO "Preinstall ($PID) Step 1: Installing wireguard and resolvconf"
 
+# modbprobe and ip_forward
+sudo modprobe br_netfilter
+echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.conf net.ipv4.ip_forward = 1
+sudo sysctl -p
+
 Check_lock
 # Step 1: Install WireGuard package
 if ! command -v wg > /dev/null; then
@@ -93,6 +98,13 @@ sudo apt-get install -y curl || { log_print ERROR "Preinstall ($PID) Step 4: cur
 # Check for lock
 Check_lock
 # Adding Kubernetes Repo
+
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+
+# Check for lock
+Check_lock
+
 log_print INFO "Preinstall ($PID) Step 5: Adding Kubernetes Repo"
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.26/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg || { log_print ERROR "Preinstall ($PID) Step 5: Kubernetes repo can't be added!"; exit $EXITCODE; }
@@ -100,6 +112,7 @@ sudo apt-get update
 
 # Check for lock
 Check_lock
+
 # Install Kubernetes
 log_print INFO "Preinstall ($PID) Step 6: Installing Kubernetes"
 sudo apt-get install -y kubeadm=1.26.15-1.1 --allow-downgrades || { log_print ERROR "Preinstall ($PID) Step 6: kubeadm installation failed!"; exit $EXITCODE; }
