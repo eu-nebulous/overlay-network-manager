@@ -64,13 +64,14 @@ check_wg_installed() {
 log_print INFO "Preinstall ($PID): Configuration started!"
 log_print INFO "Preinstall ($PID): Logs are saved at: $LOGFILE"
 
-log_print INFO "Preinstall ($PID) Step 1: Installing wireguard and resolvconf"
 
-# modbprobe and ip_forward
+log_print INFO "Preinstall ($PID): Step 1: Adding modprobe br_netfilter and setting ip_forward = 1..."
+# Modbprobe and ip_forward
 sudo modprobe br_netfilter
 echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.conf net.ipv4.ip_forward = 1
 sudo sysctl -p
 
+log_print INFO "Preinstall ($PID) Step 2: Installing wireguard and resolvconf"
 Check_lock
 # Step 1: Install WireGuard package
 if ! command -v wg > /dev/null; then
@@ -92,20 +93,20 @@ sudo apt-get update
 # Check for lock
 Check_lock
 # Install curl
-log_print INFO "Preinstall ($PID) Step 4: Installing curl"
-sudo apt-get install -y curl || { log_print ERROR "Preinstall ($PID) Step 4: curl installation failed!"; exit $EXITCODE; }
+log_print INFO "Preinstall ($PID) Step 4: Installing ca-certificates curl"
+sudo apt-get install -y ca-certificates curl || { log_print ERROR "Preinstall ($PID) Step 4: curl installation failed!"; exit $EXITCODE; }
 
 # Check for lock
 Check_lock
-# Adding Kubernetes Repo
 
-sudo apt-get install ca-certificates curl
+log_print INFO "Preinstall ($PID) Step 5: Installing /etc/apt/keyrings"
 sudo install -m 0755 -d /etc/apt/keyrings
 
 # Check for lock
 Check_lock
 
-log_print INFO "Preinstall ($PID) Step 5: Adding Kubernetes Repo"
+# Adding Kubernetes Repo
+log_print INFO "Preinstall ($PID) Step 6: Adding Kubernetes Repo"
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.26/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.26/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg || { log_print ERROR "Preinstall ($PID) Step 5: Kubernetes repo can't be added!"; exit $EXITCODE; }
 sudo apt-get update
@@ -114,13 +115,13 @@ sudo apt-get update
 Check_lock
 
 # Install Kubernetes
-log_print INFO "Preinstall ($PID) Step 6: Installing Kubernetes"
+log_print INFO "Preinstall ($PID) Step 7: Installing Kubernetes"
 sudo apt-get install -y kubeadm=1.26.15-1.1 --allow-downgrades || { log_print ERROR "Preinstall ($PID) Step 6: kubeadm installation failed!"; exit $EXITCODE; }
 sudo apt-get install -y kubelet=1.26.15-1.1 --allow-downgrades || { log_print ERROR "Preinstall ($PID) Step 6: kubectl installation failed!"; exit $EXITCODE; }
 sudo apt-get install -y kubectl=1.26.15-1.1 --allow-downgrades || { log_print ERROR "Preinstall ($PID) Step 6: kubelet installation failed!"; exit $EXITCODE; }
 
 # Install Containerd
-log_print INFO "Preinstall ($PID) Step 7: Installing Containerd"
+log_print INFO "Preinstall ($PID) Step 8: Installing Containerd"
 mkdir -p $HOME/k8s-deps
 wget https://github.com/containerd/containerd/releases/download/v1.7.2/containerd-1.7.2-linux-$ARCHITECTURE.tar.gz -P $HOME/k8s-deps
 tar xvf $HOME/k8s-deps/containerd-1.7.2-linux-$ARCHITECTURE.tar.gz
@@ -142,26 +143,26 @@ sudo systemctl restart containerd
 sudo systemctl status containerd
 
 # Holding upgrades for Kubernetes software (versions to updated manually)
-log_print INFO "Preinstall ($PID) Step 8: Holding Packages"
+log_print INFO "Preinstall ($PID) Step 9: Holding Packages"
 sudo apt-mark hold kubeadm kubelet kubectl containerd
 
-log_print INFO "Preinstall ($PID) Step 9: Checking Kubernetes versions"
+log_print INFO "Preinstall ($PID) Step 10: Checking Kubernetes versions"
 kubeadm version     || { log_print ERROR "Preinstall ($PID) Step 9: kubeadm installation failed!"; exit $EXITCODE; }
 kubelet --version   || { log_print ERROR "Preinstall ($PID) Step 9: kubelet installation failed!"; exit $EXITCODE; }
 kubectl version
 if [ $? -gt 1 ]; then
-	log_print ERROR "Preinstall ($PID) Step 9: kubectl installation failed!"; exit $EXITCODE;
+	log_print ERROR "Preinstall ($PID) Step 10: kubectl installation failed!"; exit $EXITCODE;
 fi
 
 # Turn off the swap memory
-log_print INFO "Preinstall ($PID) Step 10: Turn off swap..."
+log_print INFO "Preinstall ($PID) Step 11: Turn off swap..."
 if [ `grep Swap /proc/meminfo | grep SwapTotal: | cut -d" " -f14` == "0" ]; then
-  log_print INFO "Preinstall ($PID) Step 10: The swap memory is Off"
+  log_print INFO "Preinstall ($PID) Step 11: The swap memory is Off"
 else
-  sudo swapoff –a || { log_print ERROR "Preinstall ($PID) Step 10: swap memory can't be turned off "; exit $EXITCODE; }
+  sudo swapoff –a || { log_print ERROR "Preinstall ($PID) Step 11: swap memory can't be turned off "; exit $EXITCODE; }
 fi
 
-log_print INFO "Preinstall ($PID) Step 11: Installing Helm..."
+log_print INFO "Preinstall ($PID) Step 12: Installing Helm..."
 
 curl -fsSL -o $HOME/k8s-deps/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 && chmod 700 $HOME/k8s-deps/get_helm.sh && $HOME/k8s-deps/get_helm.sh
 # Add Cilium Helm Repo
@@ -171,4 +172,4 @@ helm repo update
 # Declare configuration done successfully
 ENDTIME=$(date +%s)
 ELAPSED=$(( ENDTIME - STARTTIME ))
-log_print INFO "Preinstall ($PID) Step 12: k8s-preinstall.sh: Configuration done successfully in $ELAPSED seconds "
+log_print INFO "Preinstall ($PID) Step 13: k8s-preinstall.sh: Configuration done successfully in $ELAPSED seconds "
