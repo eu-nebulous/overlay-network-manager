@@ -27,10 +27,6 @@ spec:
       serviceAccountName: {{ include "nebulous-overlay-network-manager.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      initContainers:
-        - name: wait-for-postgresql
-          image: docker.io/bitnami/postgresql:16.2.0-debian-12-r8
-          command: ['sh', '-c', 'until pg_isready -U postgresql -d dbname=postgres -h nebulous-overlay-network-manager-postgresql -p 5432; do echo waiting for database; sleep 2; done;']
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -41,18 +37,15 @@ spec:
             - name: onm-api
               containerPort: 8082
               protocol: TCP
-            - name: pgadmin
-              containerPort: 5050
-              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: POSTGRES_USER
-              value: {{ .Values.postgresql.global.postgresql.auth.username }}
+              value: {{ .Values.postgresql.user }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgresql.global.postgresql.auth.password }}
+              value: {{ .Values.postgresql.password }}
             - name: POSTGRES_DB
-              value: {{ .Values.postgresql.global.postgresql.auth.database }}
+              value: {{ .Values.postgresql.database }}
             - name: POSTGRES_IP_FQDN
               value: "nebulous-overlay-network-manager-postgresql"
             - name: POSTGRES_CONNECTION_STRING
