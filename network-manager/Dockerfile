@@ -6,7 +6,7 @@ FROM docker.io/maven:3.9.1-eclipse-temurin-20 AS build
 
 WORKDIR /app
 COPY src ./src
-COPY wg-bootstrap-agent-scripts ./wg-bootstrap-agent-scripts
+COPY bootstrap-agent-scripts/wireguard ./wg-bootstrap-agent-scripts
 COPY pom.xml ./
 
 RUN mvn clean package -DskipTests

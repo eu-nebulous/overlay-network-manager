@@ -56,6 +56,7 @@ public class ApplicationNodeService {
             applicationMasterNode.setPublicIp(applicationNodeDto.publicIp());
             applicationMasterNode.setApplicationUUID(applicationNodeDto.applicationUUID());
             applicationMasterNode.setSshUsername(applicationNodeDto.sshUsername());
+            applicationMasterNode.setSshPort(Integer.parseInt(applicationNodeDto.sshPort()));
             applicationMasterNode.setDateCreated(new Date());
             applicationMasterNode.setOpenSSLPrivateKey(openSSLPrivateKey);
             applicationMasterNode.setOpenSSLPublicKey(openSSLPublicKey);
@@ -80,6 +81,7 @@ public class ApplicationNodeService {
             var applicationWorkerNode = new ApplicationWorkerNode();
             applicationWorkerNode.setUuid(UUID.randomUUID().toString());
             applicationWorkerNode.setSshUsername(applicationNodeDto.sshUsername());
+            applicationWorkerNode.setSshPort(Integer.parseInt(applicationNodeDto.sshPort()));
             applicationWorkerNode.setPublicIp(applicationNodeDto.publicIp());
             applicationWorkerNode.setApplicationMasterNode(masterNode);
             applicationWorkerNode.setDateCreated(new Date());
@@ -114,8 +116,8 @@ public class ApplicationNodeService {
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-server-create.sh ------------------------------------");
             logService.log(logList, Level.INFO, ONM, "SCP FILE wg-server-create.sh to HOST: " + applicationNodeDto.publicIp());
 
-            remoteCodeExecutionService.scpFile(applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
-                22,applicationNodeDto.privateKeyBase64(),30L,
+            remoteCodeExecutionService.scpFile(logList, applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
+                Integer.parseInt(applicationNodeDto.sshPort()),applicationNodeDto.privateKeyBase64(),30L,
                 wgBootstrapAgentScriptsDir + "/server/wg-server-create.sh",
                 "wireguard",null);
             logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-server-create.sh to HOST: " + applicationNodeDto.publicIp());
@@ -123,8 +125,8 @@ public class ApplicationNodeService {
             var permissionsCommand = "sudo chmod +x /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-server-create.sh";
             var executeCommand = "sudo /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-server-create.sh " + wireguardPrivateKey + " " +
                 wireguardPublicKey + " " + " " + wireguardDefaultServerIp;
-            remoteCodeExecutionService.runCommand(applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
-                22,30L,
+            remoteCodeExecutionService.runCommand(logList, applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
+                Integer.parseInt(applicationNodeDto.sshPort()),30L,
                 permissionsCommand + ";" + executeCommand, null);
             logService.log(logList, Level.INFO, ONM, "COMMAND wg-server-create.sh for HOST " + applicationNodeDto.publicIp() + " COMPLETED!");
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-server-create.sh ------------------------------------");
@@ -146,8 +148,8 @@ public class ApplicationNodeService {
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-create_server.sh ------------------------------------");
                 logService.log(logList, Level.INFO, ONM, "SCP FILE wg-client-create_server.sh to HOST: " + masterNode.getPublicIp());
 
-                remoteCodeExecutionService.scpFile(masterNode.getSshUsername(),masterNode.getPublicIp(),
-                    22, masterNode.getOpenSSLPrivateKey(), 30L,
+                remoteCodeExecutionService.scpFile(logList, masterNode.getSshUsername(),masterNode.getPublicIp(),
+                    masterNode.getSshPort(), masterNode.getOpenSSLPrivateKey(), 30L,
                      wgBootstrapAgentScriptsDir + "/client/wg-client-create_server.sh",
                     "wireguard",null);
                 logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-client-create_server.sh to HOST: " + masterNode.getPublicIp());
@@ -155,23 +157,23 @@ public class ApplicationNodeService {
                 var executeCommandServer = "sudo /home/" + masterNode.getSshUsername() + "/wireguard/wg-client-create_server.sh " + workerNodeClientName + " " + wireguardPrivateKey + " " +
                     wireguardPublicKey + " " + masterNode.getSshUsername() + " " +  masterNode.getWireguardPublicKey() + " " + masterNode.getPublicIp()+":"+"51820" + " " +
                     wireguardWorkerIp + " " + wireguardAllowedIps;
-                remoteCodeExecutionService.runCommand(masterNode.getSshUsername(),masterNode.getOpenSSLPrivateKey(),masterNode.getPublicIp(),
-                    22,30L,
+                remoteCodeExecutionService.runCommand(logList, masterNode.getSshUsername(),masterNode.getOpenSSLPrivateKey(),masterNode.getPublicIp(),
+                    masterNode.getSshPort(),30L,
                     permissionsCommandServer + ";" + executeCommandServer, null);
                 logService.log(logList, Level.INFO, ONM, "COMMAND wg-client-create_server.sh for HOST " + masterNode.getPublicIp() + " COMPLETED!");
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-create_server.sh ------------------------------------");
 
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-create_client.sh ------------------------------------");
-                remoteCodeExecutionService.scpFile(applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
-                    22,applicationNodeDto.privateKeyBase64(),30L,
+                remoteCodeExecutionService.scpFile(logList, applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
+                    Integer.parseInt(applicationNodeDto.sshPort()),applicationNodeDto.privateKeyBase64(),30L,
                     wgBootstrapAgentScriptsDir + "/client/wg-client-create_client.sh",
                     "wireguard",null);
                 logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-client-create_client.sh to HOST: " + applicationNodeDto.publicIp());
                 var permissionsCommandClient = "sudo chmod +x /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-client-create_client.sh";
                 var executeCommandClient = "sudo /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-client-create_client.sh " + applicationNodeDto.sshUsername() + " " +
                     "\"" + masterNode.getOpenSSLPrivateKey() + "\"  " + masterNode.getPublicIp() + " " + workerNodeClientName + " " + masterNode.getSshUsername();
-                remoteCodeExecutionService.runCommand(applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
-                    22,30L, permissionsCommandClient + ";" + executeCommandClient, null);
+                remoteCodeExecutionService.runCommand(logList, applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
+                    Integer.parseInt(applicationNodeDto.sshPort()),30L, permissionsCommandClient + ";" + executeCommandClient, null);
                 logService.log(logList, Level.INFO, ONM, "COMMAND wg-client-create_client.sh for HOST " + applicationNodeDto.publicIp() + " COMPLETED!");
 
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-create_client.sh ------------------------------------");
@@ -203,15 +205,15 @@ public class ApplicationNodeService {
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-server-delete.sh ------------------------------------");
                 logService.log(logList, Level.INFO, ONM, "SCP FILE wg-server-delete.sh to HOST: " + applicationNodeDto.publicIp());
 
-                remoteCodeExecutionService.scpFile(applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
-                    22,applicationNodeDto.privateKeyBase64(),30L,
+                remoteCodeExecutionService.scpFile(logList, applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
+                    masterNode.getSshPort(),applicationNodeDto.privateKeyBase64(),30L,
                     wgBootstrapAgentScriptsDir + "/server/wg-server-delete.sh",
                     "wireguard",null);
                 logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-server-delete.sh to HOST: " + applicationNodeDto.publicIp());
                 var permissionsCommand = "sudo chmod +x /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-server-delete.sh";
                 var executeCommand = "sudo /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-server-delete.sh " + applicationNodeDto.sshUsername();
-                remoteCodeExecutionService.runCommand(applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
-                    22,30L,
+                remoteCodeExecutionService.runCommand(logList, applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
+                    masterNode.getSshPort(),30L,
                     permissionsCommand + ";" + executeCommand, null);
                 logService.log(logList, Level.INFO, ONM, "COMMAND wg-server-delete.sh for HOST " + applicationNodeDto.publicIp() + " COMPLETED!");
                 logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-server-delete.sh ------------------------------------");
@@ -230,32 +232,32 @@ public class ApplicationNodeService {
 
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-delete_client.sh ------------------------------------");
             logService.log(logList, Level.INFO, ONM, "SCP FILE wg-client-delete_client.sh to HOST: " + applicationNodeDto.publicIp());
-            remoteCodeExecutionService.scpFile(applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
-                22,applicationNodeDto.privateKeyBase64(),30L,
+            remoteCodeExecutionService.scpFile(logList, applicationNodeDto.sshUsername(),applicationNodeDto.publicIp(),
+                workerNode.getSshPort(),applicationNodeDto.privateKeyBase64(),30L,
                 wgBootstrapAgentScriptsDir + "/client/wg-client-delete_client.sh",
                 "wireguard",null);
             logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-client-delete_client_script.sh to HOST: " + applicationNodeDto.publicIp());
             var permissionsCommandClient = "sudo chmod +x /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-client-delete_client.sh";
             var executeCommandClient = "sudo /home/" + applicationNodeDto.sshUsername() + "/wireguard/wg-client-delete_client.sh " + applicationNodeDto.sshUsername() +
                 " " + "wg" + workerNode.getWireguardIp();
-            remoteCodeExecutionService.runCommand(applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
-                22,30L,
+            remoteCodeExecutionService.runCommand(logList, applicationNodeDto.sshUsername(),applicationNodeDto.privateKeyBase64(),applicationNodeDto.publicIp(),
+                workerNode.getSshPort(),30L,
                 permissionsCommandClient + ";" + executeCommandClient, null);
             logService.log(logList, Level.INFO, ONM, "COMMAND wg-client-delete_client.sh for HOST " + applicationNodeDto.publicIp() + " COMPLETED!");
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-delete_client.sh ------------------------------------");
 
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-delete_server.sh ------------------------------------");
             logService.log(logList, Level.INFO, ONM, "SCP FILE wg-client-delete_server.sh to HOST: " + workerNode.getApplicationMasterNode().getPublicIp());
-            remoteCodeExecutionService.scpFile(workerNode.getApplicationMasterNode().getSshUsername(),workerNode.getApplicationMasterNode().getPublicIp(),
-                22,workerNode.getApplicationMasterNode().getOpenSSLPrivateKey(),30L,
+            remoteCodeExecutionService.scpFile(logList, workerNode.getApplicationMasterNode().getSshUsername(),workerNode.getApplicationMasterNode().getPublicIp(),
+                workerNode.getApplicationMasterNode().getSshPort(),workerNode.getApplicationMasterNode().getOpenSSLPrivateKey(),30L,
                 wgBootstrapAgentScriptsDir + "/client/wg-client-delete_server.sh",
                 "wireguard",null);
             logService.log(logList, Level.INFO, ONM, "SCP COMPLETED! Ready to run wg-client-delete_server.sh to HOST: " + workerNode.getApplicationMasterNode().getPublicIp());
             var permissionsCommandServer = "sudo chmod +x /home/" + workerNode.getApplicationMasterNode().getSshUsername() + "/wireguard/wg-client-delete_server.sh";
             var executeCommandServer = "sudo /home/" + workerNode.getApplicationMasterNode().getSshUsername() + "/wireguard/wg-client-delete_server.sh " + "wg" + workerNode.getWireguardIp() +
                 " " + workerNode.getWireguardPublicKey() + " " + applicationNodeDto.sshUsername();
-            remoteCodeExecutionService.runCommand(workerNode.getApplicationMasterNode().getSshUsername(),workerNode.getApplicationMasterNode().getOpenSSLPrivateKey(),
-                workerNode.getApplicationMasterNode().getPublicIp(),22,30L, permissionsCommandServer + ";" + executeCommandServer, null);
+            remoteCodeExecutionService.runCommand(logList, workerNode.getApplicationMasterNode().getSshUsername(),workerNode.getApplicationMasterNode().getOpenSSLPrivateKey(),
+                workerNode.getApplicationMasterNode().getPublicIp(),workerNode.getApplicationMasterNode().getSshPort(),30L, permissionsCommandServer + ";" + executeCommandServer, null);
             logService.log(logList, Level.INFO, ONM, "COMMAND wg-client-delete_server.sh for HOST " + applicationNodeDto.publicIp() + " COMPLETED!");
             logService.log(logList, Level.INFO, ONM, "------------------------------------ wg-client-delete_server.sh ------------------------------------");
 

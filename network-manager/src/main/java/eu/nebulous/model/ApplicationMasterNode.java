@@ -27,6 +27,9 @@ public class ApplicationMasterNode extends PanacheEntity {
     @Column(name = "sshUsername")
     private String sshUsername;
 
+    @Column(name = "sshPort")
+    private Integer sshPort;
+
     @Column(length = 5000, name = "openSSLPrivateKey")
     private String openSSLPrivateKey;
 

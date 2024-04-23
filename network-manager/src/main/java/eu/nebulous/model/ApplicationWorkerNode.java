@@ -25,6 +25,9 @@ public class ApplicationWorkerNode extends PanacheEntity {
     @Column(name = "sshUsername")
     private String sshUsername;
 
+    @Column(name = "sshPort")
+    private Integer sshPort;
+
     @Column(name = "wireguardPrivateKey")
     private String wireguardPrivateKey;
 

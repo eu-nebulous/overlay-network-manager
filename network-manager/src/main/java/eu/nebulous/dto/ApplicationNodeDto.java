@@ -6,5 +6,6 @@ public record ApplicationNodeDto(
     Boolean isMaster,
     String sshUsername,
     String privateKeyBase64,
-    String publicKey
+    String publicKey,
+    String sshPort
 ) {}

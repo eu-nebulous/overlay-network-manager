@@ -1,6 +1,8 @@
 package eu.nebulous.service;
 
+import eu.nebulous.dto.LogDto;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.common.keyprovider.FileKeyPairProvider;
@@ -15,22 +17,25 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Date;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 public class RemoteCodeExecutionService {
+    @Inject
+    LogService logService;
 
-    private static final Logger logger = Logger.getLogger(RemoteCodeExecutionService.class.getName());
+    private static final String WG = "WG";
 
-    public void runCommand(String username, String privateKeyBase64, String host, int port,
-                                  long defaultTimeoutSeconds, String command, String password) {
+    public void runCommand(List<LogDto> logList, String username, String privateKeyBase64, String host, int port,
+                           long defaultTimeoutSeconds, String command, String password) {
 
-        File privateKeyFile = createTmpFile(privateKeyBase64);
+        File privateKeyFile = createTmpFile(logList, host, privateKeyBase64);
+
+        logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Setting up SSH Client to SSH. Command: " + command);
 
         var client = SshClient.setUpDefaultClient();
         client.start();
@@ -49,6 +54,7 @@ public class RemoteCodeExecutionService {
             }
 
             session.auth().verify(defaultTimeoutSeconds, TimeUnit.SECONDS); // Timeout
+            logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Authenticating Session");
 
             try (var responseStream = new ByteArrayOutputStream();
                 var channel = session.createExecChannel(command)) {
@@ -61,27 +67,33 @@ public class RemoteCodeExecutionService {
                         pipedIn.flush();
                     }
 
+                    logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Opening SSH Channel");
+
                     channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
                         TimeUnit.SECONDS.toMillis(defaultTimeoutSeconds));
                     var responseString = responseStream.toString();
 
-                    logger.log(Level.INFO, "Response: {0}", new Object[]{responseString});
+                    logService.log(logList, Level.INFO, WG, "HOST: " + host + ". SSH Channel Response: "
+                        + responseString);
                 } finally {
                     channel.close(false);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logService.log(logList, Level.SEVERE, WG, "SSH Channel Error from Host: " + host + ": "
+                + e.getMessage());
         } finally {
             client.stop();
             privateKeyFile.delete();
         }
     }
 
-    public void scpFile(String username, String host, int port, String privateKeyBase64, long defaultTimeoutSeconds,
+    public void scpFile(List<LogDto> logList, String username, String host, int port, String privateKeyBase64, long defaultTimeoutSeconds,
                                String localFilePath, String remoteTargetFolder, String password) {
 
-        File privateKeyFile = createTmpFile(privateKeyBase64);
+        File privateKeyFile = createTmpFile(logList, host, privateKeyBase64);
+
+        logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Setting up SSH Client to SSH.");
 
         var client = SshClient.setUpDefaultClient();
         client.start();
@@ -100,21 +112,25 @@ public class RemoteCodeExecutionService {
             }
 
             session.auth().verify(defaultTimeoutSeconds, TimeUnit.SECONDS);
+            logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Authenticating Session");
 
             var creator = ScpClientCreator.instance();
             var scpClient = creator.createScpClient(session);
 
+            logService.log(logList, Level.INFO, WG, "HOST: " + host + ". Uploading " + localFilePath +
+                "to /home/" + username + "/" + remoteTargetFolder);
             // To SCP a file to the remote system
             scpClient.upload(localFilePath, "/home/" + username + "/" + remoteTargetFolder);
         } catch (IOException e) {
-            e.printStackTrace();
+            logService.log(logList, Level.SEVERE, WG, "SSH Channel Error from Host: " + host + ": "
+                + e.getMessage());
         } finally {
             client.stop();
             privateKeyFile.delete();
         }
     }
 
-    private File createTmpFile(String privateKey) {
+    private File createTmpFile(List<LogDto> logList, String host, String privateKey) {
         try {
             // Create temp file.
             var temp = File.createTempFile("originPK" + UUID.randomUUID(), ".txt");
@@ -128,7 +144,8 @@ public class RemoteCodeExecutionService {
 
             return temp;
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "{0} -> Problem creating tmp file for Origin Private Key File", new Object[]{new Date()});
+            logService.log(logList, Level.SEVERE, WG, "HOST: " + host + "Problem creating tmp file for Origin " +
+                    "Private Key File");
             return null;
         }
     }
