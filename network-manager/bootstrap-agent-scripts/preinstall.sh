@@ -68,7 +68,7 @@ log_print INFO "Preinstall ($PID): Logs are saved at: $LOGFILE"
 log_print INFO "Preinstall ($PID): Step 1: Adding modprobe br_netfilter and setting ip_forward = 1..."
 # Modbprobe and ip_forward
 sudo modprobe br_netfilter
-echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.conf net.ipv4.ip_forward = 1
+echo "net.ipv4.ip_forward = 1" | sudo tee /etc/sysctl.conf
 sudo sysctl -p
 
 log_print INFO "Preinstall ($PID) Step 2: Installing wireguard and resolvconf"
