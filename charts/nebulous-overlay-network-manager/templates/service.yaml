@@ -8,11 +8,11 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.pgadminPort }}
-      targetPort: pgadmin
+      targetPort: {{ .Values.service.pgadminPort }}
       protocol: TCP
       name: pgadmin
-    - port: {{ .Values.service.onmApiPort }}
-      targetPort: onm-api
+    - port: {{ .Values.service.onmApiExposePort }}
+      targetPort: {{ .Values.service.onmApiApplicationPort }}
       protocol: TCP
       name: onm-api
   selector:
