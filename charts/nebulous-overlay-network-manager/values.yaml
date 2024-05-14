@@ -40,7 +40,8 @@ service:
   type: ClusterIP
   port: 80
   pgadminPort: 5050
-  onmApiPort: 8082
+  onmApiExposePort: 8082
+  onmApiApplicationPort: 8080
 
 ingress:
   enabled: false
