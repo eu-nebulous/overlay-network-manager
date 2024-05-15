@@ -62,7 +62,7 @@ NODE_TYPE=$2
 # Application UUID
 APPLICATION_UUID=$3
 # Overlay Network Manager Public IP
-ONM_IP=$4
+ONM_URL=$4
 # SSH Port
 SSH_PORT=${6:-22}
 
@@ -77,7 +77,7 @@ log_print INFO "onm-bootstrap ($PID): Configuration started!"
 log_print INFO "onm-bootstrap ($PID): Logs are saved at: $LOGFILE"
 
 log_print INFO "onm-bootstrap($PID): Starting onm-bootstrap with the following parameters: ACTION=$ACTION, NODE_TYPE=$NODE_TYPE,
-                APPLICATION_UUID=$APPLICATION_UUID, ONM_IP=$ONM_IP, PUBLIC_IP=$public_ip,
+                APPLICATION_UUID=$APPLICATION_UUID, ONM_URL=$ONM_URL, PUBLIC_IP=$public_ip,
                 LOGGED_IN_USER=$logged_in_user, SSH_PORT=$SSH_PORT"
 
 log_print INFO "onm-bootstrap($PID): Updating apt..."
@@ -134,9 +134,9 @@ EOF
 log_print INFO "onm-bootstrap($PID): Current Payload is: $PAYLOAD"
 
 if [ "$ACTION" == "CREATE" ]; then
-  curl -v -X POST -H "Content-Type: application/json" -d "$PAYLOAD" http://${ONM_IP}:8082/api/v1/node/create
+  curl -v -X POST -H "Content-Type: application/json" -d "$PAYLOAD" ${ONM_URL}/api/v1/node/create
 elif [ "$ACTION" == "DELETE" ]; then
-  curl -v -X DELETE -H "Content-Type: application/json" -d "$PAYLOAD" http://${ONM_IP}:8082/api/v1/node/delete
+  curl -v -X DELETE -H "Content-Type: application/json" -d "$PAYLOAD" ${ONM_URL}/api/v1/node/delete
 fi
 
 # Declare configuration done successfully
