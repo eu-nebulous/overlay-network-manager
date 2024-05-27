@@ -8,6 +8,7 @@
       - nebulous-overlay-network-manager-container-images
     description: Build the container images.
     files: &image_files
+      - ^zuul\.d/jobs\.yaml$
       - ^network-manager/
     vars: &image_vars
       promote_container_image_job: nebulous-overlay-network-manager-upload-container-images
