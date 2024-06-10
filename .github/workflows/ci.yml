@@ -1,0 +1,18 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+      - r[1-9]
+  pull_request:
+    branches:
+      - main
+      - r[1-9]
+jobs:
+  build-and-push-overlay-network-manager:
+    name: Build and push overlay-network-manager
+    uses: eu-nebulous/github-actions/.github/workflows/build-and-push-container-image.yml@main
+    with:
+      context: network-manager 
+      image-name: overlay-network-manager
+    secrets: inherit
