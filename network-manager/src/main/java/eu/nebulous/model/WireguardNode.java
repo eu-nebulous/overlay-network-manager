@@ -3,7 +3,6 @@ package eu.nebulous.model;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,11 +15,14 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ApplicationWorkerNode extends PanacheEntity {
+public class WireguardNode extends PanacheEntity {
     private String uuid;
 
     @Column(name = "publicIp")
     private String publicIp;
+
+    @Column(name = "applicationUUID")
+    private String applicationUUID;
 
     @Column(name = "sshUsername")
     private String sshUsername;
@@ -28,24 +30,21 @@ public class ApplicationWorkerNode extends PanacheEntity {
     @Column(name = "sshPort")
     private Integer sshPort;
 
-    @Column(name = "wireguardPrivateKey")
-    private String wireguardPrivateKey;
-
-    @Column(name = "wireguardPublicKey")
-    private String wireguardPublicKey;
-
     @Column(length = 5000, name = "openSSLPrivateKey")
     private String openSSLPrivateKey;
 
     @Column(length = 1000, name = "openSSLPublicKey")
     private String openSSLPublicKey;
 
-    @Column(name = "dateCreated")
-    private Date dateCreated;
+    @Column(name = "wireguardPrivateKey")
+    private String wireguardPrivateKey;
+
+    @Column(name = "wireguardPublicKey")
+    private String wireguardPublicKey;
 
     @Column(name = "wireguardIp")
     private String wireguardIp;
 
-    @ManyToOne
-    public ApplicationMasterNode applicationMasterNode;
+    @Column(name = "dateCreated")
+    private Date dateCreated;
 }
