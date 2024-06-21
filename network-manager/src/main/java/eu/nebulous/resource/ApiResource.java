@@ -6,15 +6,15 @@ import jakarta.ws.rs.Path;
 
 @Singleton
 public class ApiResource {
-    private final ApplicationNodeResource applicationNodeResource;
+    private final WireguardNodeResource wireguardNodeResource;
 
     @Inject
-    public ApiResource(ApplicationNodeResource applicationNodeResource) {
-        this.applicationNodeResource = applicationNodeResource;
+    public ApiResource(WireguardNodeResource wireguardNodeResource) {
+        this.wireguardNodeResource = wireguardNodeResource;
     }
 
     @Path("/node")
-    public ApplicationNodeResource getAuthResource() {
-        return applicationNodeResource;
+    public WireguardNodeResource getAuthResource() {
+        return wireguardNodeResource;
     }
 }

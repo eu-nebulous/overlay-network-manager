@@ -1,9 +1,8 @@
 package eu.nebulous.dto;
 
-public record ApplicationNodeDto(
+public record WireguardNodeDto(
     String publicIp,
     String applicationUUID,
-    Boolean isMaster,
     String sshUsername,
     String privateKeyBase64,
     String publicKey,

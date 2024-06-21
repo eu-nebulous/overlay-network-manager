@@ -2,7 +2,7 @@ FROM docker.io/curlimages/curl:8.5.0 AS downloader
 ARG RUN_JAVA_VERSION=1.3.5
 RUN curl https://repo1.maven.org/maven2/io/fabric8/run-java-sh/${RUN_JAVA_VERSION}/run-java-sh-${RUN_JAVA_VERSION}-sh.sh -o /tmp/run-java.sh
 
-FROM docker.io/maven:3.9.1-eclipse-temurin-20 AS build
+FROM docker.io/maven:3.9.4-eclipse-temurin-21 AS build
 
 WORKDIR /app
 COPY src ./src
@@ -11,7 +11,7 @@ COPY pom.xml ./
 
 RUN mvn clean package -DskipTests
 
-FROM docker.io/eclipse-temurin:20-jre-alpine
+FROM docker.io/eclipse-temurin:21-jre-alpine
 
 ENV USER_ID=1001
 
