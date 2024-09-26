@@ -20,4 +20,8 @@ public class WireguardNodeRepository implements PanacheRepository<WireguardNode>
     public WireguardNode findByWireguardNodeIp(String wireguardNodeIp){
         return find("wireguardIp", wireguardNodeIp).firstResult();
     }
+
+    public WireguardNode findByWireguardNodeIpAndApplicationUUID(String wireguardNodeIp, String applicationUUID){
+        return find("wireguardIp = ?1 and applicationUUID = ?2", wireguardNodeIp, applicationUUID).firstResult();
+    }
 }

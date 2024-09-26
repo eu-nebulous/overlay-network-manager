@@ -119,12 +119,14 @@ public class WireguardNodeService {
     }
 
     @Transactional
-    public List<LogDto> deregisterWireguardNode(String wireguardNodeIp) {
+    public List<LogDto> deregisterWireguardNode(String wireguardNodeIp, String applicationUUID) {
         var logList = new ArrayList<LogDto>();
 
-        var wireguardNode = wireguardNodeRepository.findByWireguardNodeIp(wireguardNodeIp);
+        var wireguardNode = wireguardNodeRepository
+            .findByWireguardNodeIpAndApplicationUUID(wireguardNodeIp, applicationUUID);
         if (wireguardNode == null) {
-            logService.log(logList, Level.WARNING, ONM, "Wireguard Node with IP " + wireguardNodeIp + " not found. Exiting...");
+            logService.log(logList, Level.WARNING, ONM, "Wireguard Node with IP " + wireguardNodeIp + " and " +
+                "Application UUID: " + applicationUUID  + " not found. Exiting...");
             return logList;
         }
 
