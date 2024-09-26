@@ -206,6 +206,22 @@ if [ "$ACTION" == "CREATE" ]; then
   # Create OpenSSH Public/Private Key files
   ssh-keygen -C wireguard-pub -t rsa -b 4096 -f /home/${logged_in_user}/wireguard/wireguard -N ""
 
+  # Checking existence of ~/.ssh/authorized_keys
+  SSH_DIR_NAME="/home/${logged_in_user}/.ssh"
+  log_print INFO "onm-bootstrap($PID): Checking existence of ~/.ssh/authorized_keys"
+  if [ -d "$SSH_DIR_NAME" ]; then
+    log_print INFO "Directory $SSH_DIR_NAME already exists."
+  else
+    log_print INFO "Directory $SSH_DIR_NAME does not exist. Creating it now."
+    mkdir -p /home/${logged_in_user}/.ssh && chmod 700 /home/${logged_in_user}/.ssh
+    if [ $? -eq 0 ]; then
+      touch $SSH_DIR_NAME/authorized_keys && chmod 600 $SSH_DIR_NAME/authorized_keys
+    else
+      log_print WARN "Failed to create directory $SSH_DIR_NAME."
+      exit 1
+    fi
+  fi
+
   log_print INFO "onm-bootstrap($PID): Moving wireguard.pub file to authorized_keys file..."
   cat /home/${logged_in_user}/wireguard/wireguard.pub >> /home/${logged_in_user}/.ssh/authorized_keys
 
