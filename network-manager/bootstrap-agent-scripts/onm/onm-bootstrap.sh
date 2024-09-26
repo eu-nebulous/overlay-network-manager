@@ -250,8 +250,8 @@ EOF
 
 elif [ "$ACTION" == "DELETE" ]; then
   WIREGUARD_VPN_IP=`ip a | grep wg | grep inet | awk '{print $2}' | cut -d'/' -f1`;
-  log_print INFO "onm-bootstrap($PID): Executing API Call: ${ONM_URL}/api/v1/node/delete/${WIREGUARD_VPN_IP}....."
-  curl -v -X DELETE -H "Content-Type: application/json" ${ONM_URL}/api/v1/node/delete/${WIREGUARD_VPN_IP}
+  log_print INFO "onm-bootstrap($PID): Executing API Call: ${ONM_URL}/api/v1/node/delete/${WIREGUARD_VPN_IP}/${APPLICATION_UUID}....."
+  curl -v -X DELETE -H "Content-Type: application/json" ${ONM_URL}/api/v1/node/delete/${WIREGUARD_VPN_IP}/${APPLICATION_UUID}
   log_print INFO "onm-bootstrap($PID): Just finished! The Wireguard Interface has been deleted."
 fi
 

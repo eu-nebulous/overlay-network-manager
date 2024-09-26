@@ -47,12 +47,13 @@ public class WireguardNodeResource {
     }
 
     @DELETE
-    @Path("/delete/{wireguardNodeIp}")
+    @Path("/delete/{wireguardNodeIp}/{applicationUUID}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Delete Wireguard Node From Application Cluster")
-    public Response deregisterWireguardNode(@PathParam("wireguardNodeIp") String wireguardNodeIp) {
+    public Response deregisterWireguardNode(@PathParam("wireguardNodeIp") String wireguardNodeIp,
+                                            @PathParam("applicationUUID") String applicationUUID) {
         // Delete Configuration for Wireguard Node
-        var logs = wireguardNodeService.deregisterWireguardNode(wireguardNodeIp);
+        var logs = wireguardNodeService.deregisterWireguardNode(wireguardNodeIp, applicationUUID);
 
         return Response.ok(logs).build();
     }
