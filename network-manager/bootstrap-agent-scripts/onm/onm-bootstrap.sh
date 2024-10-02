@@ -14,6 +14,17 @@ exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>$LOGFILE 2>&1
 
+# Find Resource Architecture
+ARCH_COMMAND=$(sudo arch)
+AMD_ARCH="x86_64"
+ARM_ARCH="aarch64"
+
+if [ "$ARCH_COMMAND" = "$AMD_ARCH" ]; then
+    ARCHITECTURE="amd64"
+elif [ "$ARCH_COMMAND" = "$ARM_ARCH" ]; then
+    ARCHITECTURE="arm64"
+fi
+
 # A function to print a message to the stdout as well as as the LOGFILE
 log_print(){
   level=$1
@@ -186,6 +197,16 @@ if [ "$ACTION" == "CREATE" ]; then
   Check_lock
 
   sudo apt-get update
+
+  # Check if the architecture is arm64
+  if [ "$ARCHITECTURE" = "arm64" ]; then
+      KERNEL_VERSION=$(uname -r)
+      LINUX_MODULE="linux-modules-extra-${KERNEL_VERSION}"
+      log_print INFO "onm-bootstrap($PID): Architecture is $ARCHITECTURE. Installing... $LINUX_MODULE"
+
+      Check_lock
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y $LINUX_MODULE
+  fi
 
   log_print INFO "onm-bootstrap($PID): Installing wireguard and resolvconf..."
 
