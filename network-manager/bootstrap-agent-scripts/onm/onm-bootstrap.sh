@@ -160,9 +160,16 @@ EOF"
   log_print INFO "onm-bootstrap ($PID): Enable onm_peers_polling_service to start on boot"
   sudo systemctl enable onm_peers_polling_service.service
 
-  # Start the service
-  log_print INFO "onm-bootstrap ($PID): Start the onm_peers_polling_service"
-  sudo systemctl start onm_peers_polling_service.service
+  # Check if the service is active.
+  if sudo systemctl is-active --quiet onm_peers_polling_service.service; then
+    # The service was created on a prev. ONM installation, needs to be restarted in order to pick the new version
+    log_print INFO "onm-bootstrap ($PID): Restart the onm_peers_polling_service"
+    sudo systemctl restart onm_peers_polling_service.service
+  else
+    # Start the service
+    log_print INFO "onm-bootstrap ($PID): Start the onm_peers_polling_service"
+    sudo systemctl start onm_peers_polling_service.service
+  fi
 
   # Display the status of the service
   log_print INFO "onm-bootstrap ($PID): Display the status of the onm_peers_polling_service"
@@ -225,7 +232,7 @@ if [ "$ACTION" == "CREATE" ]; then
 
   log_print INFO "onm-bootstrap($PID): Creating OpenSSH Public/Private Key Pair..."
   # Remove OpenSSH Public/Private Key files if they already exist
-  rm -f /home/${logged_in_user}/wireguard/wireguard
+  rm -rf /home/${logged_in_user}/wireguard/wireguard
   # Create OpenSSH Public/Private Key files
   ssh-keygen -C wireguard-pub -t rsa -b 4096 -f /home/${logged_in_user}/wireguard/wireguard -N ""
 
