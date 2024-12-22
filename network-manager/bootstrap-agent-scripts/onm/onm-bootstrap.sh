@@ -232,7 +232,9 @@ if [ "$ACTION" == "CREATE" ]; then
 
   log_print INFO "onm-bootstrap($PID): Creating OpenSSH Public/Private Key Pair..."
   # Remove OpenSSH Public/Private Key files if they already exist
+
   rm -rf /home/${logged_in_user}/wireguard/wireguard
+
   # Create OpenSSH Public/Private Key files
   ssh-keygen -C wireguard-pub -t rsa -b 4096 -f /home/${logged_in_user}/wireguard/wireguard -N ""
 
