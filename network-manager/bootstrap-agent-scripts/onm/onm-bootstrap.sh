@@ -176,7 +176,44 @@ APPLICATION_UUID=$2
 # Overlay Network Manager Public IP
 ONM_URL=$3
 # Get the public IP
-public_ip=${4:-$(curl -s http://httpbin.org/ip | grep -oP '(?<="origin": ")[^"]*')}
+# If the 4th argument is passed, use it as the public IP. Otherwise, determine it.
+public_ip=${4}
+
+# If public_ip is not set, fall back to polling multiple services
+if [[ -z "$public_ip" ]]; then
+  echo "No IP provided. Polling external services to determine public IP..."
+
+  SERVICES=(
+    "http://httpbin.org/ip"
+    "http://ipinfo.io/ip"
+    "http://api.ipify.org"
+    "http://ifconfig.me"
+    "http://checkip.amazonaws.com"
+  )
+
+  extract_ip() {
+    echo "$1" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}'
+  }
+
+  for service in "${SERVICES[@]}"; do
+    echo "Trying $service ..."
+    response=$(curl -s --max-time 5 "$service")
+    ip=$(extract_ip "$response")
+
+    if [[ -n "$ip" ]]; then
+      public_ip="$ip"
+      break
+    fi
+  done
+fi
+
+# Final output
+if [[ -n "$public_ip" ]]; then
+  echo "Public IP: $public_ip"
+else
+  echo "Failed to determine public IP."
+  exit 1
+fi
 # SSH Port
 SSH_PORT=${5:-22}
 
