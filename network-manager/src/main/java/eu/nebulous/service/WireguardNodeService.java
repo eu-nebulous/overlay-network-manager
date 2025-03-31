@@ -80,8 +80,8 @@ public class WireguardNodeService {
     	}
 	}
   
-  @Transactional
-	private NodeRegistrationData prepareWireguardNodeRegistration(WireguardNodeDto wireguardNodeDto) {
+        @Transactional
+	NodeRegistrationData prepareWireguardNodeRegistration(WireguardNodeDto wireguardNodeDto) {
     	var logList = new ArrayList<LogDto>();
     	
     	// Acquire lock to ensure thread safety during node registration
